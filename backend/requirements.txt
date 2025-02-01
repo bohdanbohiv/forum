@@ -1,4 +1,4 @@
 fastapi[standard]
 pip
 psycopg[binary]
-pydantic
+sqlmodel

@@ -1,25 +1,20 @@
+from contextlib import asynccontextmanager
 from http import HTTPStatus
 
-import psycopg
-from datetime import datetime
 from fastapi import FastAPI, Response, HTTPException
-from psycopg.rows import dict_row
-from pydantic import BaseModel
+from sqlmodel import select
 
-app = FastAPI()
-
-
-class Post(BaseModel):
-    body: str
-    private: bool = False
-    images: list | None = None
-    created_at: datetime | None = None
+from .db import create_db_and_tables, SessionDep
+from .models import *
 
 
-conn = psycopg.connect(
-    '',
-    row_factory=dict_row)
-cur = conn.cursor()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.get('/')
@@ -27,51 +22,46 @@ def root():
     return {'message': 'Hello World'}
 
 
-@app.post('/posts', status_code=HTTPStatus.CREATED)
-def create_post(post: Post):
-    cur.execute(
-        'INSERT INTO posts (body, private) VALUES (%s, %s) RETURNING *',
-        (post.body, post.private))
-    new_post = cur.fetchone()
-    conn.commit()
-    return {'data': new_post}
+@app.post('/posts', response_model=PostPublic, status_code=HTTPStatus.CREATED)
+def create_post(post: PostCreate, session: SessionDep) -> Post:
+    db_post = Post.model_validate(post)
+    session.add(db_post)
+    session.commit()
+    session.refresh(db_post)
+    return db_post
 
 
-@app.get('/posts')
-def read_posts():
-    cur.execute('SELECT * FROM posts')
-    posts = cur.fetchall()
-    return {'data': posts}
+@app.get('/posts', response_model=list[PostPublic])
+def read_posts(session: SessionDep) -> list[Post]:
+    return session.exec(select(Post)).all()
 
 
-@app.get('/posts/{post_id}')
-def read_post(post_id: int):
-    cur.execute('SELECT * FROM posts WHERE id = %s', (post_id,))
-    post = cur.fetchone()
+@app.get('/posts/{post_id}', response_model=PostPublic)
+def read_post(post_id: int, session: SessionDep) -> Post:
+    post = session.get(Post, post_id)
     if post is None:
-        raise HTTPException(HTTPStatus.NOT_FOUND,
-                            f'Post with id {post_id} was not found')
-    return {'post': post}
+        raise HTTPException(HTTPStatus.NOT_FOUND, 'Post not found')
+    return post
 
 
-@app.put('/posts/{post_id}')
-def update_post(post_id: int, post: Post):
-    cur.execute('UPDATE posts SET private = %s WHERE id = %s RETURNING *',
-                (post.private, post_id))
-    updated_post = cur.fetchone()
-    conn.commit()
-    if updated_post is None:
-        raise HTTPException(HTTPStatus.NOT_FOUND,
-                            f'Post with id {post_id} was not found')
-    return {'data': updated_post}
+@app.patch('/posts/{post_id}', response_model=PostPublic)
+def update_post(post_id: int, post: PostUpdate, session: SessionDep):
+    existing_post = session.get(Post, post_id)
+    if existing_post is None:
+        raise HTTPException(HTTPStatus.NOT_FOUND, 'Post not found')
+    update_data = post.model_dump(exclude_unset=True)
+    existing_post.sqlmodel_update(update_data)
+    session.add(existing_post)
+    session.commit()
+    session.refresh(existing_post)
+    return existing_post
 
 
 @app.delete('/posts/{post_id}', status_code=HTTPStatus.NO_CONTENT)
-def delete_post(post_id: int):
-    cur.execute('DELETE FROM posts WHERE id = %s RETURNING *', (post_id,))
-    deleted_post = cur.fetchone()
-    conn.commit()
-    if deleted_post is None:
-        raise HTTPException(HTTPStatus.NOT_FOUND,
-                            f'Post with id {post_id} was not found')
+def delete_post(post_id: int, session: SessionDep):
+    post = session.get(Post, post_id)
+    if post is None:
+        raise HTTPException(HTTPStatus.NOT_FOUND, 'Post not found')
+    session.delete(post)
+    session.commit()
     return Response(status_code=HTTPStatus.NO_CONTENT)
