@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from http import HTTPStatus
 
 from fastapi import FastAPI, Response, HTTPException
+from passlib.context import CryptContext
 from sqlmodel import select
 
 from .db import create_db_and_tables, SessionDep
@@ -15,6 +16,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
 @app.get('/')
@@ -65,3 +67,19 @@ def delete_post(post_id: int, session: SessionDep):
     session.delete(post)
     session.commit()
     return Response(status_code=HTTPStatus.NO_CONTENT)
+
+
+@app.post('/users', response_model=UserPublic, status_code=HTTPStatus.CREATED)
+def create_user(user: UserCreate, session: SessionDep) -> User:
+    if session.exec(
+            select(User).where(User.email == user.email)).first() is not None:
+        raise HTTPException(
+            HTTPStatus.CONFLICT,
+            'The user with this email already exists in the system'
+        )
+    db_user = User.model_validate(user, update={
+        'hashed_password': pwd_context.hash(user.password)})
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+    return db_user
