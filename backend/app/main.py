@@ -83,3 +83,11 @@ def create_user(user: UserCreate, session: SessionDep) -> User:
     session.commit()
     session.refresh(db_user)
     return db_user
+
+
+@app.get('/users/{user_id}', response_model=UserPublic)
+def read_user(user_id: int, session: SessionDep) -> User:
+    user = session.get(User, user_id)
+    if user is None:
+        raise HTTPException(HTTPStatus.NOT_FOUND, 'User not found')
+    return user
