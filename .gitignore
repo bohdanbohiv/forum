@@ -1,9 +1,3 @@
-# Byte-compiled / optimized / DLL files
-__pycache__
-
 # Editors
 .idea
 .vscode
-
-# Environments
-.venv
