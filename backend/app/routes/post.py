@@ -4,7 +4,7 @@ from fastapi import APIRouter, Response, HTTPException
 from sqlmodel import select
 
 from ..db import SessionDep
-from ..models import *
+from ..models import Post, PostCreate, PostPublic, PostUpdate
 
 router = APIRouter(prefix='/posts', tags=['posts'])
 

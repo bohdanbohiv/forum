@@ -54,3 +54,12 @@ class User(UserBase, table=True):
 class UserPublic(UserBase):
     id: int
     created_at: datetime
+
+
+class Token(SQLModel):
+    access_token: str
+    token_type: str = 'bearer'
+
+
+class TokenData(SQLModel):
+    sub: str | None = None

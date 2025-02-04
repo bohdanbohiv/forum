@@ -5,7 +5,7 @@ from sqlmodel import select
 
 from ..db import SessionDep
 from ..utils import pwd_context
-from ..models import *
+from ..models import User, UserCreate, UserPublic
 
 router = APIRouter(prefix='/users', tags=['users'])
 

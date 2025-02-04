@@ -2,4 +2,5 @@ fastapi[standard]
 passlib[bcrypt]
 pip
 psycopg[binary]
+pyjwt
 sqlmodel
