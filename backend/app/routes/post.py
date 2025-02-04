@@ -5,13 +5,15 @@ from sqlmodel import select
 
 from ..db import SessionDep
 from ..models import Post, PostCreate, PostPublic, PostUpdate
+from ..utils import CurrentUser
 
 router = APIRouter(prefix='/posts', tags=['posts'])
 
 
 @router.post('/', response_model=PostPublic, status_code=HTTPStatus.CREATED)
-def create_post(post: PostCreate, session: SessionDep) -> Post:
-    db_post = Post.model_validate(post)
+def create_post(post: PostCreate, session: SessionDep,
+                current_user: CurrentUser) -> Post:
+    db_post = Post.model_validate(post, update={'owner_id': current_user.id})
     session.add(db_post)
     session.commit()
     session.refresh(db_post)
