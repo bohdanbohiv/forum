@@ -34,10 +34,14 @@ def read_post(post_id: int, session: SessionDep) -> Post:
 
 
 @router.patch('/{post_id}', response_model=PostPublic)
-def update_post(post_id: int, post: PostUpdate, session: SessionDep):
+def update_post(post_id: int, post: PostUpdate, session: SessionDep,
+                current_user: CurrentUser) -> Post:
     existing_post = session.get(Post, post_id)
     if existing_post is None:
         raise HTTPException(HTTPStatus.NOT_FOUND, 'Post not found')
+    if existing_post.owner_id != current_user.id:
+        raise HTTPException(HTTPStatus.UNAUTHORIZED,
+                            'You are not the owner of the post')
     update_data = post.model_dump(exclude_unset=True)
     existing_post.sqlmodel_update(update_data)
     session.add(existing_post)
@@ -47,10 +51,14 @@ def update_post(post_id: int, post: PostUpdate, session: SessionDep):
 
 
 @router.delete('/{post_id}', status_code=HTTPStatus.NO_CONTENT)
-def delete_post(post_id: int, session: SessionDep):
+def delete_post(post_id: int, session: SessionDep,
+                current_user: CurrentUser) -> Response:
     post = session.get(Post, post_id)
     if post is None:
         raise HTTPException(HTTPStatus.NOT_FOUND, 'Post not found')
+    if post.owner_id != current_user.id:
+        raise HTTPException(HTTPStatus.UNAUTHORIZED,
+                            'You are not the owner of the post')
     session.delete(post)
     session.commit()
     return Response(status_code=HTTPStatus.NO_CONTENT)
