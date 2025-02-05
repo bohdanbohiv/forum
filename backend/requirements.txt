@@ -2,5 +2,6 @@ fastapi[standard]
 passlib[bcrypt]
 pip
 psycopg[binary]
+pydantic-settings
 pyjwt
 sqlmodel
