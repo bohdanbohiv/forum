@@ -1,7 +1,12 @@
 <script lang="ts">
-  import wsizLogo from '/wsiz.svg'
-  import viteLogo from '/vite.svg'
-  import Thread from './lib/Thread.svelte'
+  import wsizLogo from "/wsiz.svg";
+  import { Router, Route } from "svelte-routing";
+  import Home from "./routes/Home.svelte";
+  import Posts from "./routes/Posts.svelte";
+
+  
+
+  export let url: string = "";
 </script>
 
 <main>
@@ -9,20 +14,26 @@
     <a href="https://wsiz.edu.pl" target="_blank" rel="noreferrer">
       <img src={wsizLogo} class="logo" alt="Wsiz Logo" />
     </a>
-    
   </div>
-  <h1>Forum</h1>
-
-  <div class="card">
-    <Thread />
-    <Thread />
-    <Thread />
-  </div>
+  <Router {url}>
+    <nav>
+      <!-- <Link to="/">Home</Link>
+      <Link to="/about">About</Link> -->
+      <!-- <Link to="/blog">Blog</Link> -->
+    </nav>
+    <div>
+      <Route path="/"><Home /></Route>
+      <Route path="/posts" component={Posts} />
+    </div>
+  </Router>
 
   <p>
-    Check out <a href="https://github.com/bohdanbohiv/forum" target="_blank" rel="noreferrer">Source code</a> made by Daniyar and Bohdan!
+    Check out <a
+      href="https://github.com/bohdanbohiv/forum"
+      target="_blank"
+      rel="noreferrer">Source code</a
+    > made by Daniyar and Bohdan!
   </p>
-
 </main>
 
 <style>
