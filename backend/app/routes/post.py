@@ -21,8 +21,9 @@ def create_post(post: PostCreate, session: SessionDep,
 
 
 @router.get('/', response_model=list[PostPublic])
-def read_posts(session: SessionDep) -> list[Post]:
-    return session.exec(select(Post)).all()
+def read_posts(session: SessionDep, skip: int = 0, limit: int = 100
+               ) -> list[Post]:
+    return session.exec(select(Post).offset(skip).limit(limit)).all()
 
 
 @router.get('/{post_id}', response_model=PostPublic)
