@@ -3,4 +3,5 @@
 .vscode
 
 # Environment
+.venv/*
 .env
