@@ -6,6 +6,22 @@ from sqlmodel import Field, Relationship, SQLModel
 POST_BODY_MAX_LEN = 280
 
 
+class VoteBase(SQLModel):
+    post_id: int
+
+
+class VoteCast(VoteBase):
+    direction: int = Field(ge=0, le=1)
+
+
+class Vote(VoteBase, table=True):
+    post_id: int | None = Field(default=None, foreign_key='post.id',
+                                primary_key=True)
+    user_id: int | None = Field(default=None, foreign_key='user.id',
+                                primary_key=True)
+    created_at: datetime = Field(default_factory=datetime.now)
+
+
 class UserBase(SQLModel):
     # profile_picture | None
     name: str = Field(max_length=255)
@@ -24,6 +40,8 @@ class User(UserBase, table=True):
     created_at: datetime = Field(default_factory=datetime.now)
     posts: list['Post'] = Relationship(back_populates='owner',
                                        cascade_delete=True)
+    votes: list['Post'] = Relationship(back_populates='voters',
+                                       link_model=Vote)
 
 
 class UserPublic(UserBase):
@@ -43,6 +61,7 @@ class Post(PostBase, table=True):
     owner_id: int = Field(foreign_key='user.id', nullable=False,
                           ondelete='CASCADE')
     owner: User | None = Relationship(back_populates='posts')
+    voters: list[User] = Relationship(back_populates='votes', link_model=Vote)
 
 
 class PostPublic(PostBase):
