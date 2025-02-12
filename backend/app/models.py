@@ -70,6 +70,7 @@ class PostPublic(PostBase):
     body: str
     created_at: datetime
     owner_id: int
+    voters: list[UserPublic]
 
 
 class PostCreate(PostBase):
