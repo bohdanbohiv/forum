@@ -1,4 +1,6 @@
 <script>
+    import { navigate } from "svelte-routing";
+
     let email = "";
     let password = "";
     let errorMessage = "";
@@ -7,7 +9,7 @@
    
     
     
-    let handleLogin = () => {
+    let handleLogin = async() => {
         const endpoint = "http://127.0.0.1:8000/login/access-token";
         const requestOptions = {
             method: "POST",
@@ -16,12 +18,24 @@
             },
             body: new URLSearchParams({username: email, password: password})
         };
+        try{
+            const response = await fetch(endpoint, requestOptions)
+            if (!response.ok){
+                throw new Error("Login failed")
+            }
+            const data = await response.json();
+            if (data.access_token){
+                localStorage.setItem("jwt_token", data.access_token);
+                console.log("Token stored successfully: ", data.access_token)
+                navigate("/posts", { replace: true })
 
-        fetch(endpoint, requestOptions)
-            .then((response) => response.json())
-            .then((data) => {
-                console.log(data);
-            });
+            } else {
+                console.error("No token received")
+            }
+        }
+        catch(error){
+            console.error("Error during login: ", error)
+        }
     };
 </script>
 

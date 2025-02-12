@@ -10,7 +10,7 @@
   let successMessage = "";
 
 
-  let handleSubmit = () => {
+  let handleSubmit = async() => {
     const endpoint = "http://127.0.0.1:8000/users"
     const requestOptions = {
       method: "POST",
@@ -25,16 +25,20 @@
       errorMessage = "Passwords doesn't match"
       return; 
     }
-    fetch(endpoint, requestOptions)
-      .then(response => response.json())
-      .then(data => {
-        if(data.status === 201){
-            navigate("/login", { replace: true });
-        } else {
-          errorMessage = data.detail
-          console.log(data)
-        }
-      })
+    try {
+      const response = await fetch(endpoint, requestOptions);
+      const data = await response.json();
+
+      if (response.status === 201){
+        navigate("/login", { replace: true });
+      } else {
+        errorMessage = data.detail 
+        console.log(data)
+      }
+    } catch (error){
+      console.error("Error submitting form", error);
+      errorMessage = "Something went wrong, please try again";
+    }
     
   }
   
