@@ -1,7 +1,8 @@
 <script lang="ts">
   import wsizLogo from "/wsiz.svg";
   import { Router, Route } from "svelte-routing";
-  import Home from "./routes/Home.svelte";
+  import Registration from "./routes/Registration.svelte";
+  import Login from "./routes/Login.svelte"
   import Posts from "./routes/Posts.svelte";
 
   
@@ -22,7 +23,8 @@
       <!-- <Link to="/blog">Blog</Link> -->
     </nav>
     <div>
-      <Route path="/"><Home /></Route>
+      <Route path="/"><Registration /></Route>
+      <Route path="/login"><Login /></Route>
       <Route path="/posts" component={Posts} />
     </div>
   </Router>

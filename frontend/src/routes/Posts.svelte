@@ -2,14 +2,46 @@
     import Thread from"../lib/Thread.svelte"
     import { navigate } from "svelte-routing";
 
-    function onSubmit() {
-        navigate("/", { replace: true });
+    const verifyJWT = async() => { 
+        const token = localStorage.getItem("jwt_token");
+
+        if (!token){
+            console.error("No token found! Redirect to login page")
+            navigate("/login", { replace: true })
+        }
+
+        const endpoint = "http://127.0.0.1:8000/posts/";
+        const requestOptions = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Authorization": `Bearer ${token}`
+            }
+        };
+        try{
+            const response = await fetch(endpoint, requestOptions)
+            if (response.status === 401){
+                console.error("Token invalid")
+                navigate("/login", { replace: true })
+            } else {
+                return
+            }
+
+        } catch (error){
+            console.error("Error occured", error)
+        }
+        
+    }
+    verifyJWT()
+    const logout = async() => {
+        localStorage.removeItem("jwt_token")
+        navigate("/login", {replace: true})
     }
 
     
 </script>
 <h1>Posts</h1>
-<button on:click={onSubmit}>Logout</button>
+<button on:click={logout}>Logout</button>
 <div class="card">
     <Thread />
     <Thread />
