@@ -16,18 +16,20 @@ from .models import TokenData, User
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 oauth2 = OAuth2PasswordBearer(tokenUrl='login/access-token')
 
+ALGORITHM = 'HS256'
+
 
 def create_access_token(subject) -> str:
     return jwt.encode({'exp': datetime.now(timezone.utc) + timedelta(
         minutes=settings.access_token_expire_minutes), 'sub': str(subject)},
-                      settings.secret_key, settings.algorithm)
+                      settings.secret_key, ALGORITHM)
 
 
 def get_current_user(token: Annotated[str, Depends(oauth2)],
                      session: SessionDep) -> User:
     try:
         token_data = TokenData(**jwt.decode(token, settings.secret_key,
-                                            algorithms=[settings.algorithm]))
+                                            algorithms=[ALGORITHM]))
     except (InvalidTokenError, ValidationError):
         raise HTTPException(HTTPStatus.UNAUTHORIZED, 'Invalid token',
                             {'WWW-Authenticate': 'Bearer'})

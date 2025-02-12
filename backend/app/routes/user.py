@@ -4,8 +4,8 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import select
 
 from ..db import SessionDep
-from ..utils import pwd_context
 from ..models import User, UserCreate, UserPublic
+from ..utils import pwd_context
 
 router = APIRouter(prefix='/users', tags=['users'])
 
@@ -14,10 +14,8 @@ router = APIRouter(prefix='/users', tags=['users'])
 def create_user(user: UserCreate, session: SessionDep) -> User:
     if session.exec(
             select(User).where(User.email == user.email)).first() is not None:
-        raise HTTPException(
-            HTTPStatus.CONFLICT,
-            'The user with this email already exists in the system'
-        )
+        raise HTTPException(HTTPStatus.CONFLICT,
+                            'The user with this email already exists')
     db_user = User.model_validate(user, update={
         'hashed_password': pwd_context.hash(user.password)})
     session.add(db_user)
@@ -32,3 +30,12 @@ def read_user(user_id: int, session: SessionDep) -> User:
     if user is None:
         raise HTTPException(HTTPStatus.NOT_FOUND, 'User not found')
     return user
+
+
+@router.get('/', response_model=list[UserPublic])
+def read_users(session: SessionDep, skip: int = 0, limit: int = 100,
+               search: str = '') -> list[User]:
+    statement = select(User)
+    if search:
+        statement = statement.where(User.name.contains(search))
+    return session.exec(statement.offset(skip).limit(limit)).all()
