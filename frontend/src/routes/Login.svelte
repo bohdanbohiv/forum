@@ -58,7 +58,7 @@
         <div class="success-message">{successMessage}</div>
     {/if}
 </form>
-
+<p>Don't have an account? You can register <a on:click={() => navigate("/", {replace: true})}>here</a></p>
 <style>
     /* ... your CSS styles ... */
     .error-message {

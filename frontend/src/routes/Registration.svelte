@@ -10,7 +10,7 @@
   let successMessage = "";
 
 
-  let handleSubmit = async() => {
+  const handleSubmit = () => {
     const endpoint = "http://127.0.0.1:8000/users"
     const requestOptions = {
       method: "POST",
@@ -26,8 +26,8 @@
       return; 
     }
     try {
-      const response = await fetch(endpoint, requestOptions);
-      const data = await response.json();
+      const response =  fetch(endpoint, requestOptions);
+      const data =  response.json();
 
       if (response.status === 201){
         navigate("/login", { replace: true });
@@ -75,9 +75,7 @@
     <div class="success-message">{successMessage}</div>
   {/if}
 </form>
-
-<!-- <button on:click={onSubmit}>Click me</button> -->
-
+<p>Already have an account? Proceed to login <a target="_blank" rel="noreferrer" on:click={() => navigate("/login", {replace: true})}>here</a></p>
 <style>
   /* ... your CSS styles ... */
   .error-message {
