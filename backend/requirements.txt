@@ -1,3 +1,4 @@
+alembic
 fastapi[standard]
 passlib[bcrypt]
 pip
