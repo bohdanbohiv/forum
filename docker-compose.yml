@@ -1,0 +1,57 @@
+services:
+
+  backend:
+    image: forum-backend
+    restart: always
+    pull_policy: never
+    container_name: forum-backend
+    env_file: .env
+    environment:
+      - DB_URL=${DB_URL}
+      - SECRET_KEY=${SECRET_KEY}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+      prestart:
+        condition: service_completed_successfully
+
+  db:
+    image: postgres:17-alpine
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    container_name: forum-postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    env_file: .env
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+  prestart:
+    image: forum-backend
+    pull_policy: never
+    env_file: .env
+    environment:
+      - DB_URL=${DB_URL}
+      - SECRET_KEY=${SECRET_KEY}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    command: bash prestart.sh
+
+volumes:
+  db-data:
