@@ -56,7 +56,7 @@ def delete_post(post_id: int, session: SessionDep,
     post = session.get(Post, post_id)
     if post is None:
         raise HTTPException(HTTPStatus.NOT_FOUND, 'Post not found')
-    if post.owner_id != current_user.id:
+    if post.owner_id != current_user.id and not current_user.is_superuser:
         raise HTTPException(HTTPStatus.UNAUTHORIZED,
                             'You are not the owner of the post')
     session.delete(post)
