@@ -1,28 +1,18 @@
-from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from typing import Annotated
 
 import jwt
 from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
-from passlib.context import CryptContext
 from pydantic import ValidationError
+from sqlmodel import Session
 
 from .config import settings
-from .db import SessionDep
+from .db import get_session
 from .models import TokenData, User
+from .security import oauth2, ALGORITHM
 
-pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
-oauth2 = OAuth2PasswordBearer(tokenUrl='login/access-token')
-
-ALGORITHM = 'HS256'
-
-
-def create_access_token(subject) -> str:
-    return jwt.encode({'exp': datetime.now(timezone.utc) + timedelta(
-        minutes=settings.access_token_expire_minutes), 'sub': str(subject)},
-                      settings.secret_key, ALGORITHM)
+SessionDep = Annotated[Session, Depends(get_session)]
 
 
 def get_current_user(token: Annotated[str, Depends(oauth2)],

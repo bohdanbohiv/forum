@@ -3,15 +3,15 @@ from http import HTTPStatus
 from fastapi import APIRouter, Response, HTTPException
 from sqlmodel import select
 
-from ..db import SessionDep
+from ..deps import CurrentUser, SessionDep
 from ..models import Post, Vote, VoteCast
-from ..utils import CurrentUser
 
 router = APIRouter(prefix='/vote', tags=['vote'])
 
 
 @router.post('/')
-def cast_vote(vote: VoteCast, session: SessionDep, current_user: CurrentUser):
+def cast_vote(vote: VoteCast, session: SessionDep,
+              current_user: CurrentUser) -> Response:
     if session.get(Post, vote.post_id) is None:
         raise HTTPException(HTTPStatus.NOT_FOUND, 'Post not found')
     existing_vote = session.exec(
@@ -24,9 +24,10 @@ def cast_vote(vote: VoteCast, session: SessionDep, current_user: CurrentUser):
         session.add(db_vote)
         session.commit()
         return Response(status_code=HTTPStatus.CREATED)
-    elif vote.direction == 0:
+    if vote.direction == 0:
         if existing_vote is None:
             raise HTTPException(HTTPStatus.NOT_FOUND, 'Not voted')
         session.delete(existing_vote)
         session.commit()
         return Response(status_code=HTTPStatus.NO_CONTENT)
+    raise HTTPException(HTTPStatus.BAD_REQUEST, 'Invalid vote direction')

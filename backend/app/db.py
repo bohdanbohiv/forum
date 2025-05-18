@@ -1,9 +1,8 @@
-from typing import Annotated
-
-from fastapi import Depends
-from sqlmodel import Session, create_engine
+from sqlmodel import Session, create_engine, select
 
 from .config import settings
+from .models import User
+from .security import pwd_context
 
 engine = create_engine(settings.db_url)
 
