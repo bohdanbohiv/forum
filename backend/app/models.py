@@ -38,6 +38,7 @@ class User(UserBase, table=True):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.now)
+    is_superuser: bool = False
     posts: list['Post'] = Relationship(back_populates='owner',
                                        cascade_delete=True)
     votes: list['Post'] = Relationship(back_populates='voters',
@@ -47,6 +48,7 @@ class User(UserBase, table=True):
 class UserPublic(UserBase):
     id: int
     created_at: datetime
+    is_superuser: bool
 
 
 class PostBase(SQLModel):
