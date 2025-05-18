@@ -3,9 +3,9 @@ from http import HTTPStatus
 from fastapi import APIRouter, HTTPException
 from sqlmodel import select
 
-from ..db import SessionDep
+from ..deps import SessionDep
 from ..models import User, UserCreate, UserPublic
-from ..utils import pwd_context
+from ..security import pwd_context
 
 router = APIRouter(prefix='/users', tags=['users'])
 

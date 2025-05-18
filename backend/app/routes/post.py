@@ -3,9 +3,8 @@ from http import HTTPStatus
 from fastapi import APIRouter, Response, HTTPException
 from sqlmodel import select
 
-from ..db import SessionDep
+from ..deps import CurrentUser, SessionDep
 from ..models import Post, PostCreate, PostPublic, PostUpdate
-from ..utils import CurrentUser
 
 router = APIRouter(prefix='/posts', tags=['posts'])
 
